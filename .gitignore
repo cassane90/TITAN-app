@@ -1,0 +1,40 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Mobile sub-project
+TITANMobile/
+
+# Junk output files
+full_test_results*.txt
+lint_output*.txt
+lint_results*.txt
+vitest_errors.txt
+PROJECT_AUDIT_REPORT.md
+DIY_Repair_App_Report.doc
+
+# Dataset images (large binary files, not needed in repo)
+datasets/
+scripts/
+docs/
