@@ -93,7 +93,7 @@ export async function runForensicAudit(
     Provide the result in the specified JSON schema.`;
 
   const model = ai.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-1.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -247,7 +247,7 @@ export async function runForensicAudit(
 export async function chatWithAssistant(message: string): Promise<ChatMessage> {
   const ai = getAI();
   const model = ai.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-1.5-flash',
     systemInstruction: 'You are TITAN Support, an expert hardware diagnostics assistant. Be technical, precise, and helpful. Use search to verify current hardware trends and pricing.',
   });
 
