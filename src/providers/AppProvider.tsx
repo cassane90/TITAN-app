@@ -41,38 +41,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const refreshState = async () => {
-    let u = await supabaseService.getProfile();
-    
-    // Fallback to local guest if Supabase profile fails or user isn't logged in
-    if (!u) {
+    try {
+      const [u, h] = await Promise.race([
+        Promise.all([supabaseService.getProfile(), supabaseService.getLogs()]),
+        new Promise<[null, []]>((resolve) => setTimeout(() => resolve([null, []]), 5000))
+      ]);
+      const profile = u ?? (() => {
         const stored = localStorage.getItem(GUEST_PROFILE_KEY);
-        u = stored ? JSON.parse(stored) : DEFAULT_GUEST;
+        return stored ? JSON.parse(stored) : DEFAULT_GUEST;
+      })();
+      setUser(profile);
+      setHistory(h);
+    } catch {
+      const stored = localStorage.getItem(GUEST_PROFILE_KEY);
+      setUser(stored ? JSON.parse(stored) : DEFAULT_GUEST);
+      setHistory([]);
     }
-    
-    const h = await supabaseService.getLogs();
-    setUser(u);
-    setHistory(h);
   };
 
   useEffect(() => {
     const init = async () => {
       const client = supabaseService.client;
-      if (!client) {
-        // No Supabase at all? Use local guest.
-        await refreshState();
-        setIsLoading(false);
-        return;
-      }
 
-      const session = await client.auth.getSession();
-      setIsAuthenticated(!!session.data.session || !!localStorage.getItem(GUEST_PROFILE_KEY));
-      
-      await refreshState();
-      
-      client.auth.onAuthStateChange(async (_event, session) => {
-        setIsAuthenticated(!!session || !!localStorage.getItem(GUEST_PROFILE_KEY));
+      const doInit = async () => {
+        if (!client) {
+          await refreshState();
+          return;
+        }
+        const session = await client.auth.getSession();
+        setIsAuthenticated(!!session.data.session || !!localStorage.getItem(GUEST_PROFILE_KEY));
         await refreshState();
-      });
+        client.auth.onAuthStateChange(async (_event, s) => {
+          setIsAuthenticated(!!s || !!localStorage.getItem(GUEST_PROFILE_KEY));
+          await refreshState();
+        });
+      };
+
+      // Always resolve within 6 seconds to prevent infinite loading screen
+      await Promise.race([
+        doInit(),
+        new Promise<void>((resolve) => setTimeout(resolve, 6000))
+      ]).catch(() => {});
+
       setIsLoading(false);
     };
     init();
